@@ -1,0 +1,83 @@
+name: Sync upstream and translate to pt-BR
+
+on:
+  schedule:
+    # Daily at 06:00 UTC. For once a week (Mondays): - cron: '0 6 * * 1'
+    - cron: '0 6 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pt-translate
+  cancel-in-progress: false
+
+jobs:
+  sync-and-translate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout fork (main)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Sync upstream into main
+        id: sync
+        run: |
+          git remote add upstream https://github.com/deepseek-ai/deepseek-harness.git 2>/dev/null || true
+          git fetch upstream main --quiet
+          BEFORE="$(git rev-parse HEAD)"
+          # Regular merge: the fork's main carries its own pt-BR commits, so it is
+          # not a fast-forward of upstream. A conflict here means upstream touched
+          # the same pt/README/locale files the fork owns — resolve manually, then
+          # re-run this workflow.
+          git merge --no-edit upstream/main
+          AFTER="$(git rev-parse HEAD)"
+          echo "before=$BEFORE" >> "$GITHUB_OUTPUT"
+          echo "after=$AFTER" >> "$GITHUB_OUTPUT"
+          if [ "$BEFORE" = "$AFTER" ]; then echo "changed=false" >> "$GITHUB_OUTPUT"; echo "Up to date — nothing to translate."; exit 0; fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          git push origin main
+
+      - name: Skip if a translation PR is already open
+        id: dedup
+        if: steps.sync.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          count="$(gh pr list --repo "$GITHUB_REPOSITORY" --head pt-br/translations --state open --json number --jq length)"
+          if [ "$count" = "0" ]; then echo "should_run=true" >> "$GITHUB_OUTPUT"; else echo "should_run=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Translate (DeepSeek via dsh headless)
+        if: steps.sync.outputs.changed == 'true' && steps.dedup.outputs.should_run == 'true'
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          BEFORE: ${{ steps.sync.outputs.before }}
+          AFTER: ${{ steps.sync.outputs.after }}
+        run: |
+          PROMPT="You maintain a Brazilian Portuguese (pt-BR) fork of DeepSeek Harness. New upstream commits just landed. Update ONLY the pt-BR translation surface, nothing else. First inspect the change by running: git log --oneline $BEFORE..$AFTER and git diff $BEFORE..$AFTER. Then decide what changed: UI strings in packages/client/*/src/client/**/locales.ts (or locale.ts) and the common namespace must be mirrored into the pt-BR dictionaries in packages/client/locale-pt/src/client/locales/*.ts with keys exactly matching the English dictionaries; README or docs/user changes must be reflected in the pt-BR files (README.md is already pt-BR, and docs pages get a parallel *.pt.md next to the English *.md). Strict fork conventions: never edit upstream-owned English or Chinese content (README.en.md, README.zh-CN.md, *.md, *.zh.md) except to add a language-switcher link; every new docs/**/*.pt.md must also be added to scripts/translation-pairing.manifest.json under excluded; translate only what changed, no restructuring. Do NOT run git commit, git push, or gh — the workflow commits your changes; you may run read-only git commands and edit files. When done, the workflow commits everything you changed."
+          npx --yes @deepseek-ai/dsh --profile headless "$PROMPT"
+          # Claude Code alternative — requires an Anthropic API key (a Claude
+          # subscription's interactive OAuth login does not work in CI):
+          # npm install --global @anthropic-ai/claude-code && claude -p "$PROMPT" --dangerously-skip-permissions
+
+      - name: Commit and open PR
+        if: steps.sync.outputs.changed == 'true' && steps.dedup.outputs.should_run == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet && git diff --cached --quiet; then echo "No translation changes produced."; exit 0; fi
+          git checkout -B pt-br/translations
+          git add -A
+          git commit -m "chore(pt): atualizar traduções pt-BR" || true
+          git push --force origin pt-br/translations
+          gh pr create --repo "$GITHUB_REPOSITORY" --base main --head pt-br/translations --title "chore(pt): atualizar traduções pt-BR" --body "Sincronização automática das traduções pt-BR para o upstream ${{ steps.sync.outputs.before }}..${{ steps.sync.outputs.after }}."

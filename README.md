@@ -1,34 +1,43 @@
-# DeepSeek Harness
+# DeepSeek Harness · tradução pt-BR
 
-English | [中文](README.zh.md)
+[English](README.en.md) | [中文](README.zh-CN.md) | Português
 
-DeepSeek Harness (`dsh`) is an open-source agent harness developed by [DeepSeek AI](https://deepseek.com).
+> **Fork não oficial da comunidade.** Este repositório é um fork independente do [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) cujo objetivo é disponibilizar o projeto em **português brasileiro**: a interface e esta documentação. Ele **não** é produzido, endossado nem afiliado à [DeepSeek AI](https://deepseek.com). Para a versão e os lançamentos oficiais, use o [repositório original](https://github.com/deepseek-ai/deepseek-harness). Veja o [NOTICE](NOTICE.md) para os detalhes deste fork.
 
-It is built on an **everything-is-a-plugin** architecture and powered by [Cordis](https://github.com/cordiverse/cordis), whose design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://arxiv.org/abs/2608.25512).
+O DeepSeek Harness (`dsh`) é um harness de agente de código aberto desenvolvido pela [DeepSeek AI](https://deepseek.com). Neste fork, o projeto é oferecido com a **interface e a documentação em português brasileiro (pt-BR)**, enquanto o conteúdo técnico mantém o inglês como fonte autoritativa.
 
-Documentation: [https://deepseek-harness.github.io/deepseek-harness/](https://deepseek-harness.github.io/deepseek-harness/)
+Ele é construído sobre uma arquitetura **tudo-é-um-plugin** e é movido pelo [Cordis](https://github.com/cordiverse/cordis), cujo design é descrito em [_A Programming Paradigm for Spatiotemporal Composability_](https://arxiv.org/abs/2608.25512).
 
-## Developer preview
+Documentação oficial: [https://deepseek-harness.github.io/deepseek-harness/](https://deepseek-harness.github.io/deepseek-harness/)
 
-DeepSeek Harness is in _developer preview_ and iterating rapidly. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
+## O que este fork oferece em pt-BR
 
-Review the [safety notice](SAFETY.md) before running the project.
+- **Interface:** um pacote de idioma para a interface Web (`packages/client/locale-pt`). Depois de executar o projeto, escolha **Configurações → Geral → Idioma → Português (Brasil)**.
+- **Documentação:** traduções em pt-BR adicionadas como arquivos paralelos (por exemplo `README.en.md`/docs) ao lado do conteúdo original em inglês, que é mantido intacto para facilitar o acompanhamento do upstream.
 
-## Run
+## Pré-visualização para desenvolvedores
 
-### Run from `npm`
+O DeepSeek Harness está em _pré-visualização para desenvolvedores_ e itera rapidamente. **HAVERÁ MUDANÇAS QUE QUEBRAM COMPATIBILIDADE.**
 
-Install `Node.js`, then run:
+Antes de executar o projeto, leia o [aviso de segurança](SAFETY.pt.md).
+
+<a id="run"></a>
+
+## Executar
+
+### Executar a partir do `npm`
+
+Instale o `Node.js` e execute:
 
 ```sh
 npx @deepseek-ai/dsh web
 ```
 
-The command starts the Web UI at `http://127.0.0.1:3080` by default and opens it in the default browser for a local launch. An SSH launch only prints the host URL because the SSH client or editor owns the local forwarded address. Pass `--no-open` to run the server without opening a browser. See [Web UI guide](docs/user/guide/index.md).
+O comando inicia a interface Web em `http://127.0.0.1:3080` por padrão e a abre no navegador padrão em uma execução local. Em uma execução via SSH, apenas a URL do host é impressa, pois o cliente SSH ou o editor é o dono do endereço encaminhado localmente. Use `--no-open` para executar o servidor sem abrir um navegador. Veja o [guia da interface Web](docs/user/guide/index.md).
 
-### Run from source
+### Executar a partir do código-fonte
 
-To run from a repository checkout:
+Para executar a partir de um checkout do repositório:
 
 ```sh
 git clone https://github.com/deepseek-ai/deepseek-harness.git
@@ -38,26 +47,28 @@ pnpm run build
 pnpm dsh web
 ```
 
-`pnpm run build` prepares the repository artifacts. `pnpm dsh web` uses those built artifacts without rebuilding.
+`pnpm run build` prepara os artefatos do repositório. `pnpm dsh web` usa esses artefatos já construídos, sem reconstruí-los.
 
-## Community and support
+## Comunidade e suporte
 
-- Submit feedback or bug reports through [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions).
-- Add the [`dsh-plugin`](https://github.com/topics/dsh-plugin) topic to your plugin repository for discoverability.
-- Join <a href="https://discord.gg/Ycq5dCaS4">DeepSeek Harness Discord community</a>.
+- Envie feedback ou relatórios de bug pelo [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions).
+- Adicione o tópico [`dsh-plugin`](https://github.com/topics/dsh-plugin) ao repositório do seu plugin para facilitar sua descoberta.
+- Participe da <a href="https://discord.gg/Ycq5dCaS4">comunidade DeepSeek Harness no Discord</a>.
 
-## Contributing
+> Por se tratar de um fork de tradução, dúvidas e suporte sobre o produto oficial devem ser direcionados à comunidade upstream acima.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+## Contribuir
 
-## Development
+Veja [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Start with the [development guide](docs/development.md) and [architecture documentation](docs/architecture.md).
+## Desenvolvimento
 
-For agents, follow [AGENTS.md](AGENTS.md).
+Comece pelo [guia de desenvolvimento](docs/development.md) e pela [documentação de arquitetura](docs/architecture.md).
 
-## License
+Para agentes, siga o [AGENTS.md](AGENTS.md).
+
+## Licença
 
 [MIT](LICENSE)
 
-Third-party dependencies and their licenses are disclosed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+As dependências de terceiros e suas licenças estão listadas em [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

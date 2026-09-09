@@ -204,6 +204,11 @@
     - id: locale
       name: '@deepseek-ai/dsh-client-locale'
 
+    # Brazilian Portuguese (pt-BR) language pack: the definition plus the
+    # pt-BR dictionary for every shipped namespace, falling back to English.
+    - id: locale-pt
+      name: '@deepseek-ai/dsh-client-locale-pt'
+
     - id: ui-layout
       name: '@deepseek-ai/dsh-client-ui-layout'
 
