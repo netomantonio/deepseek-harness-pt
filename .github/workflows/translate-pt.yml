@@ -19,10 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - name: Checkout fork (main)
+      - name: Checkout fork (master)
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: master
           fetch-depth: 0
 
       - name: Configure git
@@ -30,23 +30,23 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
-      - name: Sync upstream into main
+      - name: Sync upstream into master
         id: sync
         run: |
           git remote add upstream https://github.com/deepseek-ai/deepseek-harness.git 2>/dev/null || true
-          git fetch upstream main --quiet
+          git fetch upstream master --quiet
           BEFORE="$(git rev-parse HEAD)"
-          # Regular merge: the fork's main carries its own pt-BR commits, so it is
+          # Regular merge: the fork's master carries its own pt-BR commits, so it is
           # not a fast-forward of upstream. A conflict here means upstream touched
           # the same pt/README/locale files the fork owns — resolve manually, then
           # re-run this workflow.
-          git merge --no-edit upstream/main
+          git merge --no-edit upstream/master
           AFTER="$(git rev-parse HEAD)"
           echo "before=$BEFORE" >> "$GITHUB_OUTPUT"
           echo "after=$AFTER" >> "$GITHUB_OUTPUT"
           if [ "$BEFORE" = "$AFTER" ]; then echo "changed=false" >> "$GITHUB_OUTPUT"; echo "Up to date — nothing to translate."; exit 0; fi
           echo "changed=true" >> "$GITHUB_OUTPUT"
-          git push origin main
+          git push origin master
 
       - name: Skip if a translation PR is already open
         id: dedup
@@ -80,4 +80,4 @@ jobs:
           git add -A
           git commit -m "chore(pt): atualizar traduções pt-BR" || true
           git push --force origin pt-br/translations
-          gh pr create --repo "$GITHUB_REPOSITORY" --base main --head pt-br/translations --title "chore(pt): atualizar traduções pt-BR" --body "Sincronização automática das traduções pt-BR para o upstream ${{ steps.sync.outputs.before }}..${{ steps.sync.outputs.after }}."
+          gh pr create --repo "$GITHUB_REPOSITORY" --base master --head pt-br/translations --title "chore(pt): atualizar traduções pt-BR" --body "Sincronização automática das traduções pt-BR para o upstream ${{ steps.sync.outputs.before }}..${{ steps.sync.outputs.after }}."
