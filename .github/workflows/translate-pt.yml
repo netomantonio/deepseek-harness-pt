@@ -36,11 +36,30 @@ jobs:
           git remote add upstream https://github.com/deepseek-ai/deepseek-harness.git 2>/dev/null || true
           git fetch upstream master --quiet
           BEFORE="$(git rev-parse HEAD)"
-          # Regular merge: the fork's master carries its own pt-BR commits, so it is
-          # not a fast-forward of upstream. A conflict here means upstream touched
-          # the same pt/README/locale files the fork owns — resolve manually, then
-          # re-run this workflow.
-          git merge --no-edit upstream/master
+          # Regular merge: this fork carries pt-BR content on master.
+          # When conflicts happen, keep fork-owned translation surfaces and accept
+          # upstream for the remaining files so sync can continue unattended.
+          if ! git merge --no-edit upstream/master; then
+            while IFS= read -r path; do
+              [ -z "$path" ] && continue
+              case "$path" in
+                README.md|*.pt.md|packages/client/locale-pt/*)
+                  git checkout --ours -- "$path"
+                  ;;
+                *)
+                  git checkout --theirs -- "$path"
+                  ;;
+              esac
+              git add "$path"
+            done < <(git diff --name-only --diff-filter=U)
+
+            if git diff --name-only --diff-filter=U | grep -q .; then
+              echo "::error::Unresolved merge conflicts remain after automatic resolution."
+              exit 1
+            fi
+
+            git commit --no-edit
+          fi
           AFTER="$(git rev-parse HEAD)"
           echo "before=$BEFORE" >> "$GITHUB_OUTPUT"
           echo "after=$AFTER" >> "$GITHUB_OUTPUT"
